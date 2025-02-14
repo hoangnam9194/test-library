@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.fir.types.builder.buildTypeProjectionWithVariance
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -5,8 +7,10 @@ plugins {
     id("kotlin-parcelize")
     id("maven-publish")
     id("signing")
+    id("org.jetbrains.dokka") version "1.9.10"
 //    alias(libs.plugins.kotlin.compose)
 }
+
 
 android {
     namespace = "com.library.link_attribution"
@@ -32,8 +36,22 @@ android {
         }
     }
 
+    // Sources JAR
+    task<Jar>("sourcesJar") {
+        archiveClassifier.set("sources")
+        from(android.sourceSets["main"].java.srcDirs)
+    }
+
+    task<Jar>("javadocJar") {
+        archiveClassifier.set("javadoc")
+        from(tasks["dokkaHtml"]) // Use Dokka for Kotlin documentation
+    }
+
     publishing {
         // Enable publishing for the release variant
+//        singleVariant("release") {
+//            buildTypeProjectionWithVariance { configurations.getByName("release") }
+//        }
         singleVariant("release") {
             withSourcesJar()
             withJavadocJar()
@@ -86,24 +104,26 @@ dependencies {
 
 val libVersion = "1.0.0"
 val libGroup = "dev.hoangnam9194.library"
-val libArtifactId = "linkattribution"
+val libArtifactId = "linkattributionn"
 
 publishing {
     publications {
-        register<MavenPublication>("release") {
-            // The artifactId should be specific to this module
-            groupId = "com.library.link_attribution"
-            artifactId = "my-linkattribution"
-            version = "1.0.0"
+        create<MavenPublication>("release") {
+            groupId = libGroup // e.g., com.example
+            artifactId = libArtifactId // e.g., mylibrary
+            version = libVersion // Your library version
+
+            artifact(tasks["sourcesJar"])
+            artifact(tasks["javadocJar"])
 
             afterEvaluate {
                 from(components["release"])
             }
 
             pom {
-                name.set("My Link Attribution Module")
-                description.set("A specific feature module from my Android project")
-                url.set("https://github.com/username/project")
+                name.set("My Library Name")
+                description.set("A brief description of your library")
+                url.set("https://github.com/hoangnam9194/test-library")
 
                 licenses {
                     license {
@@ -114,16 +134,16 @@ publishing {
 
                 developers {
                     developer {
-                        id.set("username")
-                        name.set("Your Name")
-                        email.set("your.email@example.com")
+                        id.set("hoangnam9194")
+                        name.set("Nam Nguyen")
+                        email.set("hoangnam9194@gmail.com")
                     }
                 }
 
                 scm {
-                    connection.set("scm:git:git://github.com/username/project.git")
-                    developerConnection.set("scm:git:ssh://github.com:username/project.git")
-                    url.set("https://github.com/username/project")
+                    connection.set("scm:git:github.com/hoangnam9194/test-library.git")
+                    developerConnection.set("scm:git:ssh://github.com/hoangnam9194/test-library.git")
+                    url.set("https://github.com/hoangnam9194/test-library/tree/main")
                 }
             }
         }
@@ -131,11 +151,11 @@ publishing {
 
     repositories {
         maven {
-            name = "OSSRH"
+            name = "MavenCentral"
             url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
             credentials {
-                username = System.getenv("OSSRH_USERNAME")
-                password = System.getenv("OSSRH_PASSWORD")
+                username = project.findProperty("ossrhUsername") as String? ?: ""
+                password = project.findProperty("ossrhPassword") as String? ?: ""
             }
         }
     }
