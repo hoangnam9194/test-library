@@ -108,7 +108,7 @@ afterEvaluate {
             register<MavenPublication>("release") {
                 groupId = "com.github.hoangnam9194" // Replace with your GitHub username
                 artifactId = "test-library" // Replace with your library's name (e.g., my-awesome-library)
-                version = "1.0.0" // Initial version number (important!)
+                version = "1.0.1" // Initial version number (important!)
 
                 afterEvaluate {
                     from(components["release"])
